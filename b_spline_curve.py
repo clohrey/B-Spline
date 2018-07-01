@@ -81,6 +81,19 @@ def delete_points_and_canvas():
     canvas.delete(*canvas_element_list)
     del control_point_list[:]
 
+
+def set_m(slider_m):
+    global m
+    m = int(slider_m)
+    draw()
+
+
+def set_k(slider_k):
+    global k
+    k = int(slider_k)
+    draw()
+
+
 if __name__ == "__main__":
     main_window = Tk()
     main_window.title = "B-spline"
@@ -99,5 +112,25 @@ if __name__ == "__main__":
     clear_quit_frame.pack(side="right")
     exit_button = Button(clear_quit_frame, text="Quit", command=(lambda root=main_window: quit(root)))
     exit_button.pack()
+
+    checkbox_frame = Frame(main_window)
+    checkbox_frame.pack(side="bottom")
+
+    color_button = Button(checkbox_frame, text="Change Color")
+    color_button.pack(side="bottom")
+
+    checkbox = Checkbutton()
+
+    slider_label_m = Label(checkbox_frame, text="m =")
+    slider_label_m.pack(side="left")
+    m_slider = Scale(checkbox_frame, from_=1, to=400, orient=HORIZONTAL, command=set_m)
+    m_slider.set(20)
+    m_slider.pack(side="left")
+
+    slider_label_k = Label(checkbox_frame, text="k =")
+    slider_label_k.pack(side="left")
+    k_slider = Scale(checkbox_frame, from_=2, to=5, orient=HORIZONTAL, command=set_m)
+    k_slider.set(20)
+    k_slider.pack(side="left")
 
     main_window.mainloop()
