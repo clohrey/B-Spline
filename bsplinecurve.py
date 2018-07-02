@@ -50,7 +50,7 @@ def draw_bezier_curve():
     deboor_points = []
 
     if len(pointList) >= k:
-        knotvector = (k - 1) * [0]  +  range(len(pointList) - (k - 1))  +  [len(pointList) - (k - 1)] * (k)
+        knotvector = (k - 1) * [0] + range(len(pointList) - (k - 1)) + [len(pointList) - (k - 1)] * (k)
 
         for i in range(m + 1):
             t = (float(i) / m) * knotvector[-1]

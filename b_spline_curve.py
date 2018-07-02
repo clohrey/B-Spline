@@ -17,6 +17,8 @@ LINE_WIDTH = 1
 control_point_list = []
 canvas_element_list = []
 
+drawing_sample_points = True
+
 m = 20  # Anzahl der Splines
 k = 4   # Grad des Polynoms
 
@@ -65,23 +67,6 @@ def draw_bezier_curve():
     global control_point_list, m, k
 
 
-def draw():
-    canvas.delete(*canvas_element_list)
-    draw_points(control_point_list, CONTROL_POINT_COLOR)
-    draw_polygon(control_point_list, CONTROL_POINT_COLOR)
-    del control_point_list[:]
-
-
-def mouse_event(event):
-    control_point_list.append([event.x, event.y])
-    draw()
-
-
-def delete_points_and_canvas():
-    canvas.delete(*canvas_element_list)
-    del control_point_list[:]
-
-
 def set_m(slider_m):
     global m
     m = int(slider_m)
@@ -94,7 +79,45 @@ def set_k(slider_k):
     draw()
 
 
+def quit_tk(root=None):
+    """ quit programm """
+    if root is None:
+        sys.exit(0)
+    root._root().quit()
+    root._root().destroy()
+
+
+def draw():
+    canvas.delete(*canvas_element_list)
+    draw_points(control_point_list, CONTROL_POINT_COLOR)
+    draw_polygon(control_point_list, CONTROL_POINT_COLOR)
+
+    del control_point_list[:]
+
+
+def set_draw_sample_points():
+    """interpolierte Kontrollpunkte zeichnen"""
+    global drawing_sample_points
+    drawing_sample_points ^= drawing_sample_points
+    draw()
+
+
+def clear_all():
+    canvas.delete(*canvas_element_list)
+    del control_point_list[:]
+
+
+def mouse_event(event):
+    control_point_list.append([event.x, event.y])
+    draw()
+
+
 if __name__ == "__main__":
+    # check parameters
+    if len(sys.argv) != 1:
+        print("pointViewerTemplate.py")
+        sys.exit(-1)
+
     main_window = Tk()
     main_window.title = "B-spline"
 
@@ -106,11 +129,11 @@ if __name__ == "__main__":
 
     clear_quit_frame = Frame(main_window)
     clear_quit_frame.pack(side="left")
-    clear_button = Button(clear_quit_frame, text="Clear", command=delete_points_and_canvas)
+    clear_button = Button(clear_quit_frame, text="Clear", command=clear_all)
     clear_button.pack(side="left")
     clear_quit_frame = Frame(main_window)
     clear_quit_frame.pack(side="right")
-    exit_button = Button(clear_quit_frame, text="Quit", command=(lambda root=main_window: quit(root)))
+    exit_button = Button(clear_quit_frame, text="Quit", command=(lambda root=main_window: quit_tk(root)))
     exit_button.pack()
 
     checkbox_frame = Frame(main_window)
@@ -119,7 +142,9 @@ if __name__ == "__main__":
     color_button = Button(checkbox_frame, text="Change Color")
     color_button.pack(side="bottom")
 
-    checkbox = Checkbutton()
+    checkbox = Checkbutton(checkbox_frame, text="Show Points", variable=True, command=set_draw_sample_points)
+    checkbox.select()
+    checkbox.pack(side="bottom")
 
     slider_label_m = Label(checkbox_frame, text="m =")
     slider_label_m.pack(side="left")
