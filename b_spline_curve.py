@@ -7,9 +7,9 @@ HEIGHT = 400
 
 POINT_SIZE = 2
 
-CONTROL_POINT_COLOR = "#0000FF"
+CONTROL_POINT_COLOR = "black"
 
-BEZIER_COLOR = "#ff0080"
+BEZIER_COLOR = "red"
 BEZIER_WIDTH = 2
 
 LINE_WIDTH = 1
@@ -19,7 +19,7 @@ canvas_element_list = []
 
 drawing_sample_points = True
 
-m = 100  # Anzahl der Splines
+m = 100  # Genauigkeit
 k = 3   # Grad des Polynoms
 
 
@@ -45,7 +45,6 @@ def draw_polygon(point_list, color):
     Geraden zwischen zwei interpolierten Kontrollpunkten zeichnen
     :param point_list:
     :param color:
-    :return:
     """
     global canvas_element_list
 
@@ -67,14 +66,22 @@ def deboor(j, i, degree, controlpoints, knotvector, t):
     """
     Deboor Algorithmus
     Seite 293 Vorlesung
+    https://de.wikipedia.org/wiki/Spline#Algorithmus_von_De_Boor
 
-    :param j:
-    :param i:
-    :param degree:
-    :param controlpoints:
-    :param knotvector:
-    :param t:
-    :return:
+    :param j: iterator j
+    :type j: int
+    :param i: iterator i
+    :type i: int
+    :param degree: Grad der B-Spline Kurve
+    :type degree: int
+    :param controlpoints: Polygon Punkt Liste
+    :type controlpoints: list
+    :param knotvector: Knotenvektor
+    :type knotvector: list
+    :param t: t value
+    :type t: float
+    :return: Ergebnis Wert auf der Kurve
+    :rtype: list (Point)
     """
     if j == 0:
         if i == len(controlpoints):
@@ -114,12 +121,11 @@ def draw_bezier_curve():
     if n < k:
         return
 
-    # knotvector is n + k + 1
+    # Knotenvektor = n + k + 1
     for _ in range(k):
         knotvector.append(0)
 
-    # + 1 because range(n) iterates to (n - 1)
-    # +1 weil range
+    # +1 weil range(n) bis (n-1) iteriert
     for i in range(1, n - (k - 1) + 1):
         knotvector.append(i)
 
@@ -127,10 +133,11 @@ def draw_bezier_curve():
         knotvector.append(n - (k - 2))
 
     for i in range(m):
-        # interpolate between zero and m in the knotvector
+        # interpoliert zwischen 0 und m im Knotenvektor
         current_t = max(knotvector) * (i / m)
         r = None
 
+        #
         for j in range(len(knotvector)):
             if knotvector[j] <= current_t < knotvector[j + 1]:
                 r = j
@@ -142,7 +149,7 @@ def draw_bezier_curve():
         # deboor(j, i, degree, pointList, knotVector, t)
         points.append(deboor(k - 1, r, k, control_point_list, knotvector, current_t))
 
-    # render the points i collected as lines
+    # Linien zu den einzelnen Punkten werden gerendert
     for i in range(len(points)):
         if i < len(points) - 1:
             canvas_element_list.append(
@@ -228,18 +235,15 @@ if __name__ == "__main__":
     checkbox_frame = Frame(main_window)
     checkbox_frame.pack(side="bottom")
 
-    color_button = Button(checkbox_frame, text="Change Color")
-    color_button.pack(side="bottom")
-
     slider_label_m = Label(checkbox_frame, text="m =")
     slider_label_m.pack(side="left")
-    m_slider = Scale(checkbox_frame, from_=1, to=400, orient=HORIZONTAL, command=set_m)
+    m_slider = Scale(checkbox_frame, from_=1, to=40, orient=HORIZONTAL, command=set_m)
     m_slider.set(20)
     m_slider.pack(side="left")
 
     slider_label_k = Label(checkbox_frame, text="k =")
     slider_label_k.pack(side="left")
-    k_slider = Scale(checkbox_frame, from_=2, to=5, orient=HORIZONTAL, command=set_m)
+    k_slider = Scale(checkbox_frame, from_=2, to=5, orient=HORIZONTAL, command=set_k)
     k_slider.set(20)
     k_slider.pack(side="left")
 
