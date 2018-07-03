@@ -19,8 +19,8 @@ canvas_element_list = []
 
 drawing_sample_points = True
 
-m = 20  # Anzahl der Splines
-k = 4   # Grad des Polynoms
+m = 100  # Anzahl der Splines
+k = 3   # Grad des Polynoms
 
 
 def draw_points(point_list, color):
@@ -52,11 +52,50 @@ def draw_polygon(point_list, color):
     if len(point_list) > 1:
         for i in range(len(point_list) - 1):
             element = canvas.create_line(
-                point_list[i][0], point_list[i][1],
-                point_list[i+1][0], point_list[i+1][1],
+                point_list[i][0],
+                point_list[i][1],
+
+                point_list[i+1][0],
+                point_list[i+1][1],
+
                 fill=color, width=LINE_WIDTH
             )
             canvas_element_list.append(element)
+
+
+def deboor(j, i, degree, controlpoints, knotvector, t):
+    """
+    Deboor Algorithmus
+    Seite 293 Vorlesung
+
+    :param j:
+    :param i:
+    :param degree:
+    :param controlpoints:
+    :param knotvector:
+    :param t:
+    :return:
+    """
+    if j == 0:
+        if i == len(controlpoints):
+            return controlpoints[i - 1]
+        else:
+            return controlpoints[i]
+
+    a = (t - knotvector[i])
+    b = (knotvector[i - j + degree] - knotvector[i])
+
+    if b == 0:
+        a_j_i = 0
+    else:
+        a_j_i = a / b
+
+    first_result = deboor(j - 1, i - 1, degree, controlpoints, knotvector, t)
+    second_result = deboor(j - 1, i, degree, controlpoints, knotvector, t)
+    return [
+        ((1 - a_j_i) * first_result[0]) + (a_j_i * second_result[0]),
+        ((1 - a_j_i) * first_result[1]) + (a_j_i * second_result[1])
+    ]
 
 
 def draw_bezier_curve():
@@ -64,7 +103,58 @@ def draw_bezier_curve():
     Erstellt Kontrollpunkte abhängig von m und k
     Zeichnet die dazugehörige Bezier-Kurve
     """
-    global control_point_list, m, k
+    global k, m, canvas_element_list, control_point_list
+
+    points = []
+
+    knotvector = []
+    n = len(control_point_list)
+    print(k)
+
+    if n < k:
+        return
+
+    # knotvector is n + k + 1
+    for _ in range(k):
+        knotvector.append(0)
+
+    # + 1 because range(n) iterates to (n - 1)
+    # +1 weil range
+    for i in range(1, n - (k - 1) + 1):
+        knotvector.append(i)
+
+    for _ in range(k):
+        knotvector.append(n - (k - 2))
+
+    for i in range(m):
+        # interpolate between zero and m in the knotvector
+        current_t = max(knotvector) * (i / m)
+        r = None
+
+        for j in range(len(knotvector)):
+            if knotvector[j] <= current_t < knotvector[j + 1]:
+                r = j
+                break
+
+        if r is None:
+            raise Exception('t is not in the knotvector!')
+
+        # deboor(j, i, degree, pointList, knotVector, t)
+        points.append(deboor(k - 1, r, k, control_point_list, knotvector, current_t))
+
+    # render the points i collected as lines
+    for i in range(len(points)):
+        if i < len(points) - 1:
+            canvas_element_list.append(
+                canvas.create_line(
+                    points[i][0],
+                    points[i][1],
+                    points[i + 1][0],
+                    points[i + 1][1],
+                    fill=BEZIER_COLOR,
+                    width=BEZIER_WIDTH,
+                )
+            )
 
 
 def set_m(slider_m):
@@ -91,8 +181,7 @@ def draw():
     canvas.delete(*canvas_element_list)
     draw_points(control_point_list, CONTROL_POINT_COLOR)
     draw_polygon(control_point_list, CONTROL_POINT_COLOR)
-
-    del control_point_list[:]
+    draw_bezier_curve()
 
 
 def set_draw_sample_points():
@@ -141,10 +230,6 @@ if __name__ == "__main__":
 
     color_button = Button(checkbox_frame, text="Change Color")
     color_button.pack(side="bottom")
-
-    checkbox = Checkbutton(checkbox_frame, text="Show Points", variable=True, command=set_draw_sample_points)
-    checkbox.select()
-    checkbox.pack(side="bottom")
 
     slider_label_m = Label(checkbox_frame, text="m =")
     slider_label_m.pack(side="left")

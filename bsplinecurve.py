@@ -74,7 +74,7 @@ def deboor(j, i, degree, controlpoints, knotvector, t):
 
     if x != 0:
         alpha = (t - knotvector[i]) / x
-    # vorheriger punkt *
+    # vorheriger punkt
     for e in deboor(j - 1, i - 1, degree, controlpoints, knotvector, t):
         b1.append((1 - alpha) * e)
     # aktueller punkt *
